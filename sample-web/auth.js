@@ -1,14 +1,15 @@
-import { initializeApp } from "[https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js](https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js)";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+// Consolidate versioning to 11.0.0 for all modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-analytics.js";
 import { 
     getAuth, 
     signInWithPopup, 
     GoogleAuthProvider, 
     onAuthStateChanged, 
     signOut 
-} from "[https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js](https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js)";
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-// REPLACE WITH YOUR ACTUAL CONFIG FROM FIREBASE CONSOLE
+// Valid Config from provided context
 const firebaseConfig = {
     apiKey: "AIzaSyBfy_q5kA-tD8Qds9MpISnG5hmByZlGzPM",
     authDomain: "summify-c84e5.firebaseapp.com",
@@ -23,6 +24,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+
+// Analytics is optional for Auth but must match version
 const analytics = getAnalytics(app);
 
 // DOM Elements
@@ -33,31 +36,43 @@ const userProfile = document.getElementById('user-profile');
 const authActions = document.getElementById('auth-actions');
 
 // --- Auth Functions ---
-
 const handleSignIn = async () => {
+    statusMsg.innerText = "Connecting to Google...";
     try {
+        // Use Popup for desktop web as requested
         const result = await signInWithPopup(auth, provider);
-        // Successful sign-in
-        console.log("User signed in:", result.user);
+        console.log("Success:", result.user.displayName);
     } catch (error) {
-        statusMsg.innerText = `Error: ${error.message}`;
-        console.error("Auth Error:", error);
+        // Robust Error Handling for common Firebase Auth issues
+        if (error.code === 'auth/popup-blocked') {
+            statusMsg.innerText = "Error: Please allow popups for this site.";
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            statusMsg.innerText = "Sign-in cancelled.";
+        } else {
+            statusMsg.innerText = `Error: ${error.message}`;
+        }
+        console.error("Auth Error:", error.code, error.message);
     }
 };
 
-const handleSignOut = () => signOut(auth);
+const handleSignOut = async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Sign out failed", error);
+    }
+};
 
-// --- Observer ---
+// --- State Observer ---
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // User is signed in
         userProfile.classList.remove('hidden');
         authActions.classList.add('hidden');
         document.getElementById('user-name').innerText = user.displayName;
         document.getElementById('user-email').innerText = user.email;
         document.getElementById('user-photo').src = user.photoURL;
+        statusMsg.innerText = "";
     } else {
-        // User is signed out
         userProfile.classList.add('hidden');
         authActions.classList.remove('hidden');
     }
