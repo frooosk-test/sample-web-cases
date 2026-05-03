@@ -1,65 +1,76 @@
-// Consolidate versioning to 11.0.0 for all modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-analytics.js";
 import { 
     getAuth, 
     signInWithPopup, 
     GoogleAuthProvider, 
     onAuthStateChanged, 
-    signOut 
+    signOut,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    sendEmailVerification // Added for confirmation logic
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
-// Valid Config from provided context
 const firebaseConfig = {
     apiKey: "AIzaSyBfy_q5kA-tD8Qds9MpISnG5hmByZlGzPM",
     authDomain: "summify-c84e5.firebaseapp.com",
     projectId: "summify-c84e5",
     storageBucket: "summify-c84e5.firebasestorage.app",
     messagingSenderId: "573523827915",
-    appId: "1:573523827915:web:77e75bd21c3555d657cf4e",
-    measurementId: "G-MNS86L91PP"
+    appId: "1:573523827915:web:77e75bd21c3555d657cf4e"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-// Analytics is optional for Auth but must match version
-const analytics = getAnalytics(app);
+const googleProvider = new GoogleAuthProvider();
 
 // DOM Elements
-const signInBtn = document.getElementById('google-signin-btn');
-const logoutBtn = document.getElementById('logout-btn');
+const emailInput = document.getElementById('email-input');
+const passwordInput = document.getElementById('password-input');
+const emailSignInBtn = document.getElementById('email-signin-btn');
+const googleSignInBtn = document.getElementById('google-signin-btn');
 const statusMsg = document.getElementById('status-msg');
 const userProfile = document.getElementById('user-profile');
 const authActions = document.getElementById('auth-actions');
 
-// --- Auth Functions ---
-const handleSignIn = async () => {
-    statusMsg.innerText = "Connecting to Google...";
+/**
+ * Sends a verification/confirmation email to the current user.
+ */
+const sendConfirmationEmail = async (user) => {
     try {
-        // Use Popup for desktop web as requested
-        const result = await signInWithPopup(auth, provider);
-        console.log("Success:", result.user.displayName);
+        await sendEmailVerification(user);
+        statusMsg.style.color = "green";
+        statusMsg.innerText = "Confirmation email sent! Please check your inbox.";
     } catch (error) {
-        // Robust Error Handling for common Firebase Auth issues
-        if (error.code === 'auth/popup-blocked') {
-            statusMsg.innerText = "Error: Please allow popups for this site.";
-        } else if (error.code === 'auth/cancelled-popup-request') {
-            statusMsg.innerText = "Sign-in cancelled.";
-        } else {
-            statusMsg.innerText = `Error: ${error.message}`;
-        }
-        console.error("Auth Error:", error.code, error.message);
+        console.error("Verification error:", error.code);
+        statusMsg.style.color = "red";
+        statusMsg.innerText = "Could not send confirmation email. Try again later.";
     }
 };
 
-const handleSignOut = async () => {
+const handleEmailAuth = async () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    if (!email || password.length < 6) {
+        statusMsg.innerText = "Valid email and 6+ character password required.";
+        return;
+    }
+
     try {
-        await signOut(auth);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // If sign in is successful, we check verification status in the observer
     } catch (error) {
-        console.error("Sign out failed", error);
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // Trigger confirmation email immediately upon registration
+                await sendConfirmationEmail(userCredential.user);
+            } catch (regError) {
+                statusMsg.innerText = `Registration failed: ${regError.message}`;
+            }
+        } else {
+            statusMsg.innerText = `Error: ${error.message}`;
+        }
     }
 };
 
@@ -68,16 +79,28 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         userProfile.classList.remove('hidden');
         authActions.classList.add('hidden');
-        document.getElementById('user-name').innerText = user.displayName;
+        
+        document.getElementById('user-name').innerText = user.displayName || "User";
         document.getElementById('user-email').innerText = user.email;
-        document.getElementById('user-photo').src = user.photoURL;
-        statusMsg.innerText = "";
+        document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/80';
+
+        // Confirmation Logic: If email isn't verified, remind them
+        if (!user.emailVerified) {
+            statusMsg.style.color = "orange";
+            statusMsg.innerHTML = `Email not confirmed. <a href="#" id="resend-email" style="text-decoration:underline">Resend?</a>`;
+            
+            document.getElementById('resend-email')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                sendConfirmationEmail(user);
+            });
+        }
     } else {
         userProfile.classList.add('hidden');
         authActions.classList.remove('hidden');
+        statusMsg.innerText = "";
     }
 });
 
-// Event Listeners
-signInBtn.addEventListener('click', handleSignIn);
-logoutBtn.addEventListener('click', handleSignOut);
+emailSignInBtn.addEventListener('click', handleEmailAuth);
+googleSignInBtn.addEventListener('click', () => signInWithPopup(auth, googleProvider));
+document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));

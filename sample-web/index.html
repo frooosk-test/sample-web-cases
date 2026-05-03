@@ -8,10 +8,10 @@
 </head>
 <body>
     <div class="auth-container">
-        <div class="auth-card">
+        <div class="auth-card"> <!-- Added missing card wrapper -->
             <h1>Artisan Goods</h1>
-            <p>Sign in to your account</p>
             
+            <!-- User Profile (Shown when authenticated) -->
             <div id="user-profile" class="hidden">
                 <img id="user-photo" src="" alt="Profile Photo">
                 <h3 id="user-name"></h3>
@@ -19,9 +19,18 @@
                 <button id="logout-btn" class="secondary-btn">Sign Out</button>
             </div>
 
+            <!-- Auth Form (Shown when unauthenticated) -->
             <div id="auth-actions">
+                <div class="email-auth-form">
+                    <input type="email" id="email-input" placeholder="Email" required>
+                    <input type="password" id="password-input" placeholder="Password" required>
+                    <button id="email-signin-btn" class="primary-btn">Sign In / Register</button>
+                </div>
+
+                <div class="divider"><span>OR</span></div>
+
                 <button id="google-signin-btn" class="google-btn">
-                    <img src="[https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg](https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg)" alt="Google Logo">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" alt="Google Logo">
                     Continue with Google
                 </button>
                 <p id="status-msg"></p>
@@ -29,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK via CDN (Modular) -->
     <script type="module" src="auth.js"></script>
 </body>
 </html>

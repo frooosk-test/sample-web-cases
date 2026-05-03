@@ -49,3 +49,40 @@ body {
 }
 
 #status-msg { margin-top: 1rem; font-size: 0.875rem; color: #ef4444; }
+
+.email-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.email-auth-form input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.primary-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.divider {
+    margin: 20px 0;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    line-height: 0.1em;
+}
+
+.divider span {
+    background: #fff;
+    padding: 0 10px;
+    color: #999;
+    font-size: 0.8rem;
+}
