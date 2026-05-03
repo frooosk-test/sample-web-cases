@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Artisan Goods</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card"> <!-- Added missing card wrapper -->
+            <h1>Artisan Goods</h1>
+            
+            <!-- User Profile (Shown when authenticated) -->
+            <div id="user-profile" class="hidden">
+                <img id="user-photo" src="" alt="Profile Photo">
+                <h3 id="user-name"></h3>
+                <p id="user-email"></p>
+                <button id="logout-btn" class="secondary-btn">Sign Out</button>
+            </div>
+
+            <!-- Auth Form (Shown when unauthenticated) -->
+            <div id="auth-actions">
+                <div class="email-auth-form">
+                    <input type="email" id="email-input" placeholder="Email" required>
+                    <input type="password" id="password-input" placeholder="Password" required>
+                    <button id="email-signin-btn" class="primary-btn">Sign In / Register</button>
+                </div>
+
+                <div class="divider"><span>OR</span></div>
+
+                <button id="google-signin-btn" class="google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" alt="Google Logo">
+                    Continue with Google
+                </button>
+                <p id="status-msg"></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
